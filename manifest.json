@@ -24,7 +24,7 @@
     "activeTab",
     "storage"
   ],
-  //firefox specific:
+
   "applications": {
     "gecko": {
       "id": "{13aaa695-c43c-4b0c-b267-31d06059e36e}"
