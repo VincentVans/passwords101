@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017, Kasper van Schie. All rights reserved.
+Copyright (c) 2021, Kasper van Schie. All rights reserved.
 
 Redistribution and use in source and binary forms, without
 modification, are permitted provided that the following conditions are
