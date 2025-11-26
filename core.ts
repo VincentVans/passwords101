@@ -29,6 +29,8 @@ const masterPasswordID = "passwordGeneratorMasterPassword";
 const generateID = "passwordGeneratorGenerate";
 const generatedPasswordID = "passwordGeneratorGeneratedPassword";
 const copyPasswordID = "passwordGeneratorCopyPassword";
+const exportButtonID = "passwordGeneratorExport";
+const importButtonID = "passwordGeneratorImport";
 const specialCharCheckboxID = "passwordGeneratorSpecialCharacterCheckBox";
 const specialCharID = "passwordGeneratorSpecialCharacterInput";
 const specialCharRowID = "passwordGeneratorSpecialCharacterInputRow";
@@ -70,6 +72,14 @@ function initPasswords101(env: Passwords101Environment) {
         // Hook up events
         document.getElementById(generateID)!.addEventListener('click', generatePassword);
         document.getElementById(copyPasswordID)!.addEventListener('click', copyToClipboard);
+        const exportBtn = document.getElementById(exportButtonID);
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportStorage);
+        }
+        const importBtn = document.getElementById(importButtonID);
+        if (importBtn) {
+            importBtn.addEventListener('click', importStorage);
+        }
         document.getElementById(specialCharCheckboxID)!.addEventListener('click', toggleSpecialChar);
         document.getElementById(urlInputID)!.addEventListener('change', updateSpecialCharIfKnownInput);
         document.getElementById(urlInputID)!.addEventListener('keyup', updateSpecialCharIfKnownInput);
@@ -320,4 +330,72 @@ function clearSpecialCharSettings() {
     }
 }
 
+function exportStorage() {
+    getEnv().storage.getAll()
+        .then(all => {
+            try {
+                const text = JSON.stringify(all);
+                // Simple, cross-environment way to let user copy the data
+                window.prompt("Copy this text to back up your settings:", text);
+            } catch (e) {
+                passwords101HandleError(e);
+            }
+        })
+        .catch(passwords101HandleError);
+}
 
+function importStorage() {
+    const text = window.prompt("Paste previously exported settings here:", "");
+    if (!text) {
+        return;
+    }
+    let parsed: any;
+    try {
+        parsed = JSON.parse(text);
+    } catch (e) {
+        try {
+            parsed = legacyImportParser(text);
+        }
+        catch (e) {
+            passwords101HandleError(e);
+            return;
+        }
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        // Not in the expected format
+        return;
+    }
+
+    const entries: { [input: string]: PasswordEntrySettings } = parsed;
+    const keys = Object.keys(entries);
+    const savePromises: Promise<void>[] = [];
+
+    for (const key of keys) {
+        const entry = entries[key] || {};
+        const special = typeof entry.specialChar === "string" ? entry.specialChar : "";
+        const maxLen = typeof entry.maxLength === "number" ? entry.maxLength : ignoreMaxLength;
+        savePromises.push(getEnv().storage.save(key, special, maxLen));
+    }
+
+    Promise.all(savePromises)
+        .then(() => getEnv().storage.getAll())
+        .then(populateSuggestions)
+        .then(() => updateSpecialCharIfKnownInput())
+        .catch(passwords101HandleError);
+}
+
+/* input\specialchar\maxlength\
+So google.com with ! and maxLength 5, wikipedia.com with no special char or maxLength would be
+google.com\!\5\wikipedia.com\\-1\
+*/
+function legacyImportParser(text: string) {
+    const values = text.split("\\");
+    const entries: { [input: string]: PasswordEntrySettings } = {};
+    for (let i = 0; i < values.length; i += 3) {
+        const input = values[i];
+        const specialChar = values[i + 1];
+        const maxLength = values[i + 2];
+        entries[input] = { specialChar: specialChar, maxLength: parseInt(maxLength, 10) };
+    }
+    return entries;
+}
