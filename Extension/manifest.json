@@ -25,7 +25,7 @@
     "storage"
   ],
 
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "{13aaa695-c43c-4b0c-b267-31d06059e36e}"
     }
