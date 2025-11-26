@@ -1,0 +1,16 @@
+{
+  "name": "passwords101",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:ts": "tsc -p tsconfig.json",
+    "build:pwa": "npm run build:ts && node scripts/build-pwa.js",
+    "build:extension": "npm run build:ts && node scripts/build-extension.js",
+    "build": "npm run build:pwa && npm run build:extension"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
+
+

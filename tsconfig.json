@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "none",
+    "outDir": "build",
+    "rootDir": ".",
+    "strict": true,
+    "noEmitOnError": true,
+    "lib": ["dom", "es2015"]
+  },
+  "include": [
+    "core.ts",
+    "Extension/core.ts",
+    "PWA/pwa.ts",
+    "sjcl.d.ts"
+  ]
+}
+
+

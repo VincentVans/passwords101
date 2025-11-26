@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passwords 101</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#00aaff">
+  <style>
+    body {
+      font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+      font-size: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f3f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .app {
+      margin-top: 32px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      padding: 20px 24px 24px;
+      max-width: 520px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0 0 4px 0;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2 {
+      margin: 0 0 18px 0;
+      font-size: 13px;
+      font-weight: 400;
+      color: #666;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #cfd8e3;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #00aaff;
+      box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.2);
+    }
+
+    .inline-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .inline-checkbox input[type="checkbox"] {
+      width: auto;
+    }
+
+    .reference-row {
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-top: 1px dashed #e1e6ef;
+      border-bottom: 1px dashed #e1e6ef;
+      margin: 10px 0 14px;
+    }
+
+    #passwordGeneratorGeneratedPassword {
+      text-align: center;
+      user-select: text;
+      -ms-user-select: text;
+      -moz-user-select: text;
+      -webkit-user-select: text;
+    }
+
+    #passwordGeneratorReferenceCode {
+      text-align: right;
+      user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #00aaff;
+      color: white;
+      transition: all 0.12s ease-out;
+    }
+
+    button:not([disabled]):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 170, 255, 0.4);
+      background-color: #18b7ff;
+    }
+
+    button[disabled] {
+      cursor: default;
+      color: #cccccc;
+      background-color: #aaaaaa;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #999;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        margin-top: 16px;
+        border-radius: 0;
+        max-width: 100%;
+        box-shadow: none;
+      }
+    }
+  </style>
+  <script src="../sjcl-1.0.8.js"></script>
+  <script src="../core.js"></script>
+  <script src="pwa.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <h1>
+      Passwords 101
+    </h1>
+    <h2>Generate strong, deterministic passwords from a master password and an input (usually the site domain).</h2>
+
+    <div class="field">
+      <label for="passwordGeneratorInput">Input (case insensitive)</label>
+      <input type="text"
+             id="passwordGeneratorInput"
+             autocapitalize="none"
+             autocorrect="off"
+             list="passwordGeneratorDataList" />
+    </div>
+
+    <div class="field inline-checkbox">
+      <input type="checkbox" id="passwordGeneratorSpecialCharacterCheckBox" />
+      <label for="passwordGeneratorSpecialCharacterCheckBox">Must contain special character?</label>
+    </div>
+
+    <div class="field" id="passwordGeneratorSpecialCharacterInputRow" style="display:none">
+      <label for="passwordGeneratorSpecialCharacterInput">Special character</label>
+      <input type="text"
+             id="passwordGeneratorSpecialCharacterInput"
+             value="!"
+             disabled="disabled"
+             autocapitalize="none"
+             autocorrect="off" />
+    </div>
+
+    <div class="field">
+      <label for="passwordGeneratorMasterPassword">Master password</label>
+      <input type="password" id="passwordGeneratorMasterPassword" />
+    </div>
+
+    <div class="reference-row">
+      <span>Typo check code</span>
+      <span id="passwordGeneratorReferenceCode"></span>
+    </div>
+
+    <div class="field">
+      <label for="passwordGeneratorGeneratedPassword">Generated password</label>
+      <input id="passwordGeneratorGeneratedPassword" readonly="readonly" />
+    </div>
+
+    <div class="button-row">
+      <button id="passwordGeneratorGenerate">Generate</button>
+      <button id="passwordGeneratorCopyPassword" disabled="disabled">Copy</button>
+    </div>
+
+    <p class="hint">
+      Your master password never leaves this device. Passwords are computed locally using the same algorithm as the browser extension.
+    </p>
+  </div>
+
+  <datalist id="passwordGeneratorDataList" style="display:none"></datalist>
+</body>
+</html>
+
+
