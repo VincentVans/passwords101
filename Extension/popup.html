@@ -1,0 +1,135 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>password</title>
+    <style>
+        body {
+            font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+            font-size: 100%;
+        }
+
+        span,
+        div {
+            user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #passwordGeneratorGeneratedPassword {
+            text-align: center;
+            user-select: text;
+            -ms-user-select: text;
+            -moz-user-select: text;
+            -webkit-user-select: text;
+        }
+
+        #passwordGeneratorReferenceCode {
+            text-align: center;
+            user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .table {
+            display: table;
+            width: 500px;
+            background-color: white;
+        }
+
+        .row {
+            padding: 3px;
+            display: table-row;
+        }
+
+        .cell {
+            display: table-cell;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        input {
+            width: 85%;
+        }
+
+        .buttonshell {
+            position: relative;
+            height: 18px;
+        }
+
+        .grey {
+            opacity:0.50;
+        }
+
+        button {
+            position: absolute;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            top: 5px;
+            border: none;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            background-color: #00aaff;
+            color: white;
+        }
+
+            button:not([disabled]):hover {
+                top: 4px;
+                border: 1px solid #b5ecf8;
+            }
+
+            button[disabled] {
+                cursor: default;
+                color: #cccccc;
+                background-color: #aaaaaa;
+            }
+    </style>
+    <script src="core.js"></script>
+    <script src="sjcl-1.0.8.js"></script>
+</head>
+<body>
+    <div class="table">
+        <div class="row">
+            <span class="cell">Input (case insensitive): </span>
+            <input class="cell" type="text" autocapitalize="none" autocorrect="off" id="passwordGeneratorInput" list="passwordGeneratorDataList" />
+        </div>
+        <div class="row">
+            <label class="cell" for="passwordGeneratorSpecialCharacterCheckBox">Must contain special character?</label>
+            <span style="float:left">
+                <input class="cell" type="checkbox" id="passwordGeneratorSpecialCharacterCheckBox" />
+            </span>
+        </div>
+        <div class="row" id="passwordGeneratorSpecialCharacterInputRow" style="display:none">
+            <span class="cell">Special character:</span>
+            <input class="cell" type="text" autocapitalize="none" autocorrect="off" id="passwordGeneratorSpecialCharacterInput" value="!" disabled="disabled" />
+        </div>
+        <div class="row">
+            <span class="cell">Master password: </span>
+            <input class="cell" type="password" id="passwordGeneratorMasterPassword" />
+        </div>
+        <div class="row grey">
+            <span class="cell">Typo check code: </span>
+            <span class="cell" id="passwordGeneratorReferenceCode"></span>
+        </div>
+        <div class="row">
+            <span class="cell"><br><br></span>
+            <span class="cell buttonshell">
+                <button id="passwordGeneratorGenerate">Generate</button>
+            </span>
+        </div>
+        <div class="row">
+            <span class="cell">Generated password: </span>
+            <input class="cell" id="passwordGeneratorGeneratedPassword" readonly="readonly" />
+        </div>
+        <div class="row">
+            <span class="cell"><br><br></span>
+            <span class="cell buttonshell">
+                <button id="passwordGeneratorCopyPassword" disabled="disabled">Copy to clipboard</button>
+            </span>
+        </div>
+        </div>
+    <datalist id="passwordGeneratorDataList" style="display:none"></datalist>
+</body>
+</html>
