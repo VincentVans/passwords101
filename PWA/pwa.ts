@@ -4,7 +4,7 @@
 class PwaStorage implements Passwords101Storage {
     private storageKey: string = "passwords101.storage";
 
-    private loadAllRaw(): { [input: string]: { specialChar: string } } {
+    private loadAllRaw(): { [input: string]: PasswordEntrySettings } {
         try {
             const raw = localStorage.getItem(this.storageKey);
             if (!raw) {
@@ -20,7 +20,7 @@ class PwaStorage implements Passwords101Storage {
         }
     }
 
-    private saveAllRaw(all: { [input: string]: { specialChar: string } }): void {
+    private saveAllRaw(all: { [input: string]: PasswordEntrySettings }): void {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(all));
         } catch (e) {
@@ -28,11 +28,11 @@ class PwaStorage implements Passwords101Storage {
         }
     }
 
-    getAll(): Promise<{ [input: string]: { specialChar: string } }> {
+    getAll(): Promise<{ [input: string]: PasswordEntrySettings }> {
         return Promise.resolve(this.loadAllRaw());
     }
 
-    getForInput(input: string): Promise<{ [input: string]: { specialChar: string } }> {
+    getForInput(input: string): Promise<{ [input: string]: PasswordEntrySettings }> {
         const all = this.loadAllRaw();
         if (Object.prototype.hasOwnProperty.call(all, input)) {
             const result: any = {};
@@ -42,12 +42,17 @@ class PwaStorage implements Passwords101Storage {
         return Promise.resolve({});
     }
 
-    save(input: string, specialChar: string): Promise<void> {
+    save(input: string, specialChar: string, maxLength: number): Promise<void> {
         const all = this.loadAllRaw();
         if (!all[input]) {
             all[input] = { specialChar: "" };
         }
         all[input].specialChar = specialChar;
+        if (maxLength > 0) {
+            all[input].maxLength = maxLength;
+        } else {
+            delete all[input].maxLength;
+        }
         this.saveAllRaw(all);
         return Promise.resolve();
     }

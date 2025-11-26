@@ -17,7 +17,7 @@ function extensionOnError(error: Error) {
 }
 
 class ExtensionStorage implements Passwords101Storage {
-    getAll(): Promise<{ [input: string]: { specialChar: string } }> {
+    getAll(): Promise<{ [input: string]: PasswordEntrySettings }> {
         return new Promise((resolve, reject) => {
             if (chromeDefined && chrome.storage && chrome.storage.sync) {
                 chrome.storage.sync.get(null, (obj: any) => resolve(obj || {}));
@@ -32,7 +32,7 @@ class ExtensionStorage implements Passwords101Storage {
         });
     }
 
-    getForInput(input: string): Promise<{ [input: string]: { specialChar: string } }> {
+    getForInput(input: string): Promise<{ [input: string]: PasswordEntrySettings }> {
         return new Promise((resolve, reject) => {
             if (chromeDefined && chrome.storage && chrome.storage.sync) {
                 chrome.storage.sync.get(input, (obj: any) => resolve(obj || {}));
@@ -47,11 +47,14 @@ class ExtensionStorage implements Passwords101Storage {
         });
     }
 
-    save(input: string, specialChar: string): Promise<void> {
+    save(input: string, specialChar: string, maxLength: number): Promise<void> {
         return new Promise((resolve, reject) => {
             let obj: any = {};
             let value: any = {};
             value["specialChar"] = specialChar;
+            if (maxLength > 0) {
+                value["maxLength"] = maxLength;
+            }
             obj[input] = value;
             if (chromeDefined && chrome.storage && chrome.storage.sync) {
                 chrome.storage.sync.set(obj, () => resolve());

@@ -5,10 +5,15 @@
 
 /// <reference path="./sjcl.d.ts" />
 
+interface PasswordEntrySettings {
+    specialChar?: string;
+    maxLength?: number;
+}
+
 interface Passwords101Storage {
-    getAll(): Promise<{ [input: string]: { specialChar: string } }>;
-    getForInput(input: string): Promise<{ [input: string]: { specialChar: string } }>;
-    save(input: string, specialChar: string): Promise<void>;
+    getAll(): Promise<{ [input: string]: PasswordEntrySettings }>;
+    getForInput(input: string): Promise<{ [input: string]: PasswordEntrySettings }>;
+    save(input: string, specialChar: string, maxLength: number): Promise<void>;
 }
 
 interface Passwords101Environment {
@@ -27,9 +32,13 @@ const copyPasswordID = "passwordGeneratorCopyPassword";
 const specialCharCheckboxID = "passwordGeneratorSpecialCharacterCheckBox";
 const specialCharID = "passwordGeneratorSpecialCharacterInput";
 const specialCharRowID = "passwordGeneratorSpecialCharacterInputRow";
+const maxLengthID = "passwordGeneratorMaxLengthInput";
+const maxLengthRowID = "passwordGeneratorMaxLengthInputRow";
 const dataListID = "passwordGeneratorDataList";
 const referenceCodeID = "passwordGeneratorReferenceCode";
 const specialCharKey = "specialChar";
+const maxLengthKey = "maxLength";
+const ignoreMaxLength = -1;
 
 let passwords101Env: Passwords101Environment | null = null;
 
@@ -87,11 +96,26 @@ function initPasswords101(env: Passwords101Environment) {
 
 function generatePassword() {
     let input = getInput(urlInputID);
-    let specialChar = specialCharChecked() ? getInput(specialCharID) : "";
-    storeInput(input, specialChar);
     let masterPassword = getInput(masterPasswordID);
+
+    let specialChar: string;
+    let maxLength: number;
+
+    if (specialCharChecked()) {
+        specialChar = getInput(specialCharID);
+        maxLength = getMaxLengthFromInput();
+    } else {
+        specialChar = "";
+        maxLength = ignoreMaxLength;
+    }
+
+    storeInput(input, specialChar, maxLength);
+
     showBusy();
-    setTimeout(() => showPassword(hash(input, masterPassword) + specialChar), 50);
+    setTimeout(() => {
+        const password = generatePasswordValue(input, masterPassword, specialChar, maxLength);
+        showPassword(password);
+    }, 50);
 }
 
 function getInput(id: string): string {
@@ -123,6 +147,31 @@ function bitsToPassword(bits: sjcl.BitArray) {
     return sjcl.codec.base64.fromBits(bits).replace(/\+/g, "K").replace(/\//g, "S");
 }
 
+function truncate(input: string, length: number): string {
+    const safeLength = Math.max(0, length);
+    if (safeLength === 0) {
+        return "";
+    }
+    if (input.length <= safeLength) {
+        return input;
+    }
+    return input.substring(0, safeLength);
+}
+
+function generatePasswordValue(input: string, masterPassword: string, specialChar: string, maxLength: number): string {
+    const base = hash(input, masterPassword);
+
+    if (maxLength !== ignoreMaxLength) {
+        const allowedCoreLength = maxLength - specialChar.length;
+        const truncatedBase = truncate(base, allowedCoreLength);
+        const combined = truncatedBase + specialChar;
+        const finalValue = truncate(combined, maxLength);
+        return finalValue;
+    }
+
+    return base + specialChar;
+}
+
 function copyToClipboard() {
     const elem = getResultElement();
     elem.select();
@@ -142,14 +191,36 @@ function specialCharChecked(): boolean {
 function toggleSpecialChar() {
     let input = document.getElementById(specialCharID);
     let row = document.getElementById(specialCharRowID);
+    let maxInput = document.getElementById(maxLengthID);
+    let maxRow = document.getElementById(maxLengthRowID);
     if (specialCharChecked()) {
         input!.removeAttribute("disabled");
-        row!.style.display = "table-row";
+        row!.style.display = "";
+        if (maxInput && maxRow) {
+            maxInput.removeAttribute("disabled");
+            maxRow.style.display = "";
+        }
     }
     else {
         input!.setAttribute("disabled", "disabled");
         row!.style.display = "none";
+        if (maxInput && maxRow) {
+            maxInput.setAttribute("disabled", "disabled");
+            maxRow.style.display = "none";
+        }
     }
+}
+
+function getMaxLengthFromInput(): number {
+    const raw = getInput(maxLengthID);
+    if (!raw) {
+        return ignoreMaxLength;
+    }
+    const parsed = parseInt(raw, 10);
+    if (!isFinite(parsed) || parsed <= 0) {
+        return ignoreMaxLength;
+    }
+    return parsed;
 }
 
 function setInput(url: string) {
@@ -174,14 +245,12 @@ function populateSuggestions(obj: Object) {
     }
 }
 
-function storeInput(input: string, specialChar: string) {
+function storeInput(input: string, specialChar: string, maxLength: number) {
     if (!input) {
         return;
     }
-    // Shape is kept for backwards compatibility with existing storage
-    let all = getEnv().storage;
     // Delegate persistence to environment implementation
-    all.save(input, specialChar).catch(passwords101HandleError);
+    getEnv().storage.save(input, specialChar, maxLength).catch(passwords101HandleError);
 }
 
 function updateSpecialCharIfKnownInput() {
@@ -213,12 +282,23 @@ function updateReferenceCodeImpl() {
 function updateSpecialChar(obj: Object) {
     let keys = Object.keys(obj);
     if (keys.length != 0) {
-        let specialChars = (<any>obj)[keys[0]];
-        if (!specialChars || specialChars[specialCharKey].length == 0) {
+        let settings = (<any>obj)[keys[0]] as PasswordEntrySettings;
+        const storedSpecial = settings && typeof settings[specialCharKey] === "string"
+            ? (settings[specialCharKey] as string)
+            : "";
+        const storedMaxLength = settings && typeof settings[maxLengthKey] === "number"
+            ? (settings[maxLengthKey] as number)
+            : ignoreMaxLength;
+
+        if (storedSpecial.length === 0 && storedMaxLength === ignoreMaxLength) {
             clearSpecialCharSettings();
         }
         else {
-            (<HTMLInputElement>document.getElementById(specialCharID)).value = specialChars[specialCharKey];
+            (<HTMLInputElement>document.getElementById(specialCharID)).value = storedSpecial || "!";
+            const maxInputElem = <HTMLInputElement>document.getElementById(maxLengthID);
+            if (maxInputElem) {
+                maxInputElem.value = storedMaxLength === ignoreMaxLength ? "" : storedMaxLength.toString();
+            }
             if (!specialCharChecked()) {
                 document.getElementById(specialCharCheckboxID)!.click();
             }
@@ -234,6 +314,10 @@ function clearSpecialCharSettings() {
         document.getElementById(specialCharCheckboxID)!.click();
     }
     (<HTMLInputElement>document.getElementById(specialCharID)).value = "!";
+    const maxInputElem = <HTMLInputElement>document.getElementById(maxLengthID);
+    if (maxInputElem) {
+        maxInputElem.value = "";
+    }
 }
 
 

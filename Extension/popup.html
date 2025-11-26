@@ -96,7 +96,7 @@
             <input class="cell" type="text" autocapitalize="none" autocorrect="off" id="passwordGeneratorInput" list="passwordGeneratorDataList" />
         </div>
         <div class="row">
-            <label class="cell" for="passwordGeneratorSpecialCharacterCheckBox">Must contain special character?</label>
+            <label class="cell" for="passwordGeneratorSpecialCharacterCheckBox">Advanced options</label>
             <span style="float:left">
                 <input class="cell" type="checkbox" id="passwordGeneratorSpecialCharacterCheckBox" />
             </span>
@@ -104,6 +104,10 @@
         <div class="row" id="passwordGeneratorSpecialCharacterInputRow" style="display:none">
             <span class="cell">Special character:</span>
             <input class="cell" type="text" autocapitalize="none" autocorrect="off" id="passwordGeneratorSpecialCharacterInput" value="!" disabled="disabled" />
+        </div>
+        <div class="row" id="passwordGeneratorMaxLengthInputRow" style="display:none">
+            <span class="cell">Max length (optional):</span>
+            <input class="cell" type="number" min="1" id="passwordGeneratorMaxLengthInput" disabled="disabled" />
         </div>
         <div class="row">
             <span class="cell">Master password: </span>
