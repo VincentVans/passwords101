@@ -194,6 +194,8 @@ _pkginfo.txt
 
 *.js
 !sjcl*.js
+!service-worker.js
+!scripts/*.js
 
 # Others
 ClientBin/

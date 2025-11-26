@@ -157,3 +157,4 @@ sjcl.json = {
         b) { var c = {}, d; for (d = 0; d < b.length; d++)void 0 !== a[b[d]] && (c[b[d]] = a[b[d]]); return c }
 }; sjcl.encrypt = sjcl.json.encrypt; sjcl.decrypt = sjcl.json.decrypt; sjcl.misc.pa = {}; sjcl.misc.cachedPbkdf2 = function (a, b) { var c = sjcl.misc.pa, d; b = b || {}; d = b.iter || 1E3; c = c[a] = c[a] || {}; d = c[d] = c[d] || { firstSalt: b.salt && b.salt.length ? b.salt.slice(0) : sjcl.random.randomWords(2, 0) }; c = void 0 === b.salt ? d.firstSalt : b.salt; d[c] = d[c] || sjcl.misc.pbkdf2(a, c, b.iter); return { key: d[c].slice(0), salt: c.slice(0) } };
 "undefined" !== typeof module && module.exports && (module.exports = sjcl); "function" === typeof define && define([], function () { return sjcl });
+
