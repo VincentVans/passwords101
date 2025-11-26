@@ -85,4 +85,5 @@ copyDir(path.join(projectRoot, "Icons"), path.join(distDir, "Icons"));
 
 console.log("Built PWA into", distDir);
 
-
+// privacyPolicy.html
+copyFile(path.join(projectRoot, "PWA", "privacyPolicy.html"), path.join(distDir, "privacyPolicy.html"));
