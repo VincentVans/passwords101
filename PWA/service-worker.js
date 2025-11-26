@@ -37,6 +37,17 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Let navigation requests go to network if not cached
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        return cached || fetch(event.request);
+      })
+    );
+    return;
+  }
+  
+  // Original logic for other requests
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) {
