@@ -1,5 +1,5 @@
 ﻿{
-  "manifest_version": 2,
+  "manifest_version": 3,
 
   "name": "Passwords 101",
   "description": "This extension generates a strong password based on a master password and an input, usually a url. This means you'll have a strong, unique, generated password for every website, yet only need to remember one password. The master password still needs to be a strong password, but that is your own responsibility.",
@@ -9,7 +9,7 @@
     "48": "Icons/Shield48.png",
     "96": "Icons/Shield96.png"
   },
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "Icons/Shield16.png",
       "19": "Icons/Shield19.png",
